@@ -1,0 +1,739 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/dashboard_viewmodel.dart';
+import '../widgets/metrics_card.dart';
+import '../widgets/chart_card.dart';
+import '../widgets/table_card.dart';
+import '../widgets/tasks_card.dart';
+import '../widgets/team_card.dart';
+import '../widgets/calendar_card.dart';
+import '../widgets/promo_card.dart';
+import '../widgets/side_menu.dart';
+import '../widgets/weekly_revenue_chart.dart';
+import '../widgets/daily_traffic_chart.dart';
+import '../widgets/pie_chart_widget.dart';
+import '../../data/models/metric_model.dart';
+
+class DashboardView extends StatelessWidget {
+  const DashboardView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = Provider.of<DashboardViewModel>(context);
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width >= 1100;
+    final isTablet = size.width < 1100 && size.width >= 650;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B1437),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Side Menu
+          if (isDesktop || isTablet)
+            const SideMenu(),
+
+          // Main Content
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context, isDesktop),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Top Metrics Row: Earnings, Spend, Sales, Balance, Tasks, Projects
+                    _buildMetricsRow(context, viewModel),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Main Layout Structure
+                    isDesktop 
+                      ? _buildDesktopLayout(context, viewModel) 
+                      : _buildMobileLayout(context, viewModel),
+                    
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, bool isDesktop) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Main Dashboard',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              'Pages / Dashboard',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withValues(alpha: 153), // Replacing withOpacity(0.6)
+              ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Container(
+              width: 240,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF192555),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Search',
+                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 128)), // Replacing withOpacity(0.5)
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            _iconButton(Icons.notifications_outlined),
+            const SizedBox(width: 8),
+            _iconButton(Icons.settings_outlined),
+            const SizedBox(width: 8),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF192555),
+                borderRadius: BorderRadius.circular(20),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/avatar.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricsRow(BuildContext context, DashboardViewModel viewModel) {
+    return Container(
+      height: 120,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            MetricsCard(
+              title: 'Earnings',
+              value: '\\$350.4',
+              subtitle: 'This Month',
+              iconData: Icons.attach_money,
+              iconColor: Colors.green,
+              percentChange: 4.2,
+              cardColor: const Color(0xFF1B254B),
+              valueColor: Colors.white.withValues(alpha: 230), // Replacing withOpacity(0.9)
+              subtitleColor: Colors.white.withValues(alpha: 179), // Replacing withOpacity(0.7)
+            ),
+            const SizedBox(width: 16),
+            MetricsCard(
+              title: 'Spend',
+              value: '\\$642.39',
+              subtitle: 'This Month',
+              iconData: Icons.account_balance_wallet,
+              iconColor: Colors.blue,
+              percentChange: -2.3,
+              cardColor: const Color(0xFF1B254B),
+              valueColor: Colors.white.withValues(alpha: 230), // Replacing withOpacity(0.9)
+              subtitleColor: Colors.white.withValues(alpha: 179), // Replacing withOpacity(0.7)
+            ),
+            const SizedBox(width: 16),
+            MetricsCard(
+              title: 'Sales',
+              value: '\\$574.34',
+              subtitle: 'This Month',
+              iconData: Icons.shopping_cart,
+              iconColor: Colors.purple,
+              percentChange: 8.4,
+              cardColor: const Color(0xFF1B254B),
+              valueColor: Colors.white.withValues(alpha: 230), // Replacing withOpacity(0.9)
+              subtitleColor: Colors.white.withValues(alpha: 179), // Replacing withOpacity(0.7)
+            ),
+            const SizedBox(width: 16),
+            MetricsCard(
+              title: 'Your Balance',
+              value: '\\$1,000',
+              subtitle: 'Wallet',
+              iconData: Icons.account_balance,
+              iconColor: Colors.amber,
+              percentChange: 0.0,
+              cardColor: const Color(0xFF1B254B),
+              valueColor: Colors.white.withValues(alpha: 230), // Replacing withOpacity(0.9)
+              subtitleColor: Colors.white.withValues(alpha: 179), // Replacing withOpacity(0.7)
+            ),
+            const SizedBox(width: 16),
+            MetricsCard(
+              title: 'New Tasks',
+              value: '154',
+              subtitle: 'This Month',
+              iconData: Icons.task_alt,
+              iconColor: Colors.orange,
+              percentChange: 2.1,
+              cardColor: const Color(0xFF1B254B),
+              valueColor: Colors.white.withValues(alpha: 230), // Replacing withOpacity(0.9)
+              subtitleColor: Colors.white.withValues(alpha: 179), // Replacing withOpacity(0.7)
+            ),
+            const SizedBox(width: 16),
+            MetricsCard(
+              title: 'Total Projects',
+              value: '24',
+              subtitle: 'Ongoing',
+              iconData: Icons.work,
+              iconColor: Colors.cyan,
+              percentChange: 3.2,
+              cardColor: const Color(0xFF1B254B),
+              valueColor: Colors.white.withValues(alpha: 230), // Replacing withOpacity(0.9)
+              subtitleColor: Colors.white.withValues(alpha: 179), // Replacing withOpacity(0.7)
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, DashboardViewModel viewModel) {
+    return Column(
+      children: [
+        // Total Spent Chart
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ChartCard(
+            title: 'Total Spent',
+            value: '\\$1,240',
+            subtitle: 'On track',
+            percentChange: 8.2,
+            chartType: ChartType.area,
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // First Row: Table, Daily Traffic, Pie Chart
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TableCard(
+                  title: 'Check Table',
+                  items: viewModel.checkTableItems,
+                  type: TableType.check,
+                ),
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: DailyTrafficChart(
+                  value: viewModel.dailyTraffic.value,
+                  subtitle: viewModel.dailyTraffic.subtitle ?? 'visitors',
+                  percentChange: viewModel.dailyTraffic.percentChange,
+                ),
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: PieChartWidget(
+                  title: 'Your Pie Chart',
+                  sections: PieChartWidget.generateDefaultSections(),
+                  labels: const ['System', 'Storage', 'Network'],
+                  colors: const [Color(0xFF805AD5), Color(0xFF76E4F7), Color(0xFF4299E1)],
+                ),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Second Row: Complex Table, Tasks Card, Calendar Card
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TableCard(
+                  title: 'Complex Table',
+                  items: viewModel.complexTableItems,
+                  type: TableType.complex,
+                ),
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1B254B),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TasksCard(tasks: viewModel.tasks),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1B254B),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const CalendarCard(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Third Row: 4 Promo Cards
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const PromoCard(type: PromoType.upgrade),
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TeamCard(members: viewModel.teamMembers),
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const PromoCard(type: PromoType.security),
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const PromoCard(type: PromoType.starbucks),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, DashboardViewModel viewModel) {
+    return Column(
+      children: [
+        // Total Spent Chart
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ChartCard(
+            title: 'Total Spent',
+            value: '\\$1,240',
+            subtitle: 'On track',
+            percentChange: 8.2,
+            chartType: ChartType.area,
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Daily Traffic Chart
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: DailyTrafficChart(
+            value: viewModel.dailyTraffic.value,
+            subtitle: viewModel.dailyTraffic.subtitle ?? 'visitors',
+            percentChange: viewModel.dailyTraffic.percentChange,
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Pie Chart
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: PieChartWidget(
+            title: 'Your Pie Chart',
+            sections: PieChartWidget.generateDefaultSections(),
+            labels: const ['System', 'Storage', 'Network'],
+            colors: const [Color(0xFF805AD5), Color(0xFF76E4F7), Color(0xFF4299E1)],
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Weekly Revenue Chart
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const WeeklyRevenueChart(),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Check Table
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: TableCard(
+            title: 'Check Table',
+            items: viewModel.checkTableItems,
+            type: TableType.check,
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Complex Table
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: TableCard(
+            title: 'Complex Table',
+            items: viewModel.complexTableItems,
+            type: TableType.complex,
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Tasks Card
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: TasksCard(tasks: viewModel.tasks),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Calendar Card
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B254B),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const CalendarCard(),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // First Row of Promo Cards
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const PromoCard(type: PromoType.upgrade),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: TeamCard(members: viewModel.teamMembers),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Second Row of Promo Cards
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const PromoCard(type: PromoType.security),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B254B),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 51), // Replacing withOpacity(0.2)
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const PromoCard(type: PromoType.starbucks),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _iconButton(IconData icon) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: const Color(0xFF192555),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Center(
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: 20,
+        ),
+      ),
+    );
+  }
+}
